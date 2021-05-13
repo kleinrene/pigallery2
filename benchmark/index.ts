@@ -6,6 +6,7 @@ import {BMConfig} from './BMConfig';
 
 
 Config.Server.Media.folder = BMConfig.path;
+Config.Server.Database.dbFolder = 'db/bm_db';
 ProjectPath.reset();
 const RUNS = BMConfig.RUNS;
 
@@ -33,7 +34,7 @@ const printTableHeader = () => {
   printLine('| Action | Sub action | Average Duration | Result  |');
   printLine('|:------:|:----------:|:----------------:|:-------:|');
 };
-const printResult = (result: BenchmarkResult, isSubResult = false) => {
+const printExperimentResult = (result: BenchmarkResult, isSubResult = false) => {
   console.log('benchmarked: ' + result.name);
   let details = '-';
   if (result.items) {
@@ -51,12 +52,19 @@ const printResult = (result: BenchmarkResult, isSubResult = false) => {
   if (isSubResult) {
     printLine('| | ' + result.name + ' | ' + (result.duration).toFixed(1) + ' ms | ' + details + ' |');
   } else {
-    printLine('| **' + result.name + '** | | **' + (result.duration).toFixed(1) + ' ms** | **' + details + '** |');
+    printLine('| **' + (result.experiment ? '`[' + result.experiment + ']`' : '') + result.name + '** | | **' + (result.duration).toFixed(1) + ' ms** | **' + details + '** |');
   }
   if (result.subBenchmarks && result.subBenchmarks.length > 1) {
     for (const item of result.subBenchmarks) {
-      printResult(item, true);
+      printExperimentResult(item, true);
     }
+  }
+};
+
+
+const printResult = (results: BenchmarkResult[]) => {
+  for (const result of results) {
+    printExperimentResult(result);
   }
 };
 
@@ -68,13 +76,28 @@ const run = async () => {
   // header
   await printHeader(await bm.getStatistic());
   printTableHeader();
+  if (BMConfig.Benchmarks.bmScanDirectory) {
+    printResult(await bm.bmScanDirectory());
+  }
+  if (BMConfig.Benchmarks.bmSaveDirectory) {
+    printResult(await bm.bmSaveDirectory());
+  }
 
-  printResult(await bm.bmScanDirectory());
-  printResult(await bm.bmSaveDirectory());
-  printResult(await bm.bmListDirectory());
-  printResult(await bm.bmListPersons());
-  (await bm.bmAllSearch()).forEach(res => printResult(res.result));
-  printResult(await bm.bmAutocomplete('a'));
+  if (BMConfig.Benchmarks.bmListDirectory) {
+    printResult(await bm.bmListDirectory());
+  }
+
+  if (BMConfig.Benchmarks.bmListPersons) {
+    printResult(await bm.bmListPersons());
+  }
+
+  if (BMConfig.Benchmarks.bmAllSearch) {
+    (await bm.bmAllSearch()).forEach(res => printResult(res.result));
+  }
+
+  if (BMConfig.Benchmarks.bmAutocomplete) {
+    printResult(await bm.bmAutocomplete('a'));
+  }
   printLine('*Measurements run ' + RUNS + ' times and an average was calculated.');
   console.log(resultsText);
   console.log('run for : ' + ((Date.now() - start)).toFixed(1) + 'ms');

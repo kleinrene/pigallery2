@@ -34,6 +34,7 @@ import {QueryKeywords, SearchQueryParser} from '../src/common/SearchQueryParser'
 
 export interface BenchmarkResult {
   name: string;
+  experiment?: string;
   duration: number;
   contentWrapper?: ContentWrapper;
   items?: number;
@@ -82,7 +83,7 @@ export class BenchmarkRunner {
     Config.Client.authenticationRequired = false;
   }
 
-  async bmSaveDirectory(): Promise<BenchmarkResult> {
+  async bmSaveDirectory(): Promise<BenchmarkResult[]> {
     await this.init();
     await this.resetDB();
     const dir = await DiskMangerWorker.scanDirectory(this.biggestDirPath);
@@ -97,7 +98,7 @@ export class BenchmarkRunner {
     return await bm.run(this.RUNS);
   }
 
-  async bmScanDirectory(): Promise<BenchmarkResult> {
+  async bmScanDirectory(): Promise<BenchmarkResult[]> {
     await this.init();
     const bm = new Benchmark('Scanning directory');
     bm.addAStep({
@@ -107,7 +108,7 @@ export class BenchmarkRunner {
     return await bm.run(this.RUNS);
   }
 
-  async bmListDirectory(): Promise<BenchmarkResult> {
+  async bmListDirectory(): Promise<BenchmarkResult[]> {
     Config.Server.Indexing.reIndexingSensitivity = ReIndexingSensitivity.low;
     await this.init();
     await this.setupDB();
@@ -122,7 +123,7 @@ export class BenchmarkRunner {
     return await bm.run(this.RUNS);
   }
 
-  async bmListPersons(): Promise<BenchmarkResult> {
+  async bmListPersons(): Promise<BenchmarkResult[]> {
     await this.setupDB();
     Config.Server.Indexing.reIndexingSensitivity = ReIndexingSensitivity.low;
     const bm = new Benchmark('Listing Faces', Utils.clone(this.requestTemplate), async (): Promise<void> => {
@@ -133,7 +134,7 @@ export class BenchmarkRunner {
     return await bm.run(this.RUNS);
   }
 
-  async bmAllSearch(): Promise<{ result: BenchmarkResult, searchQuery: SearchQueryDTO }[]> {
+  async bmAllSearch(): Promise<{ result: BenchmarkResult[], searchQuery: SearchQueryDTO }[]> {
     await this.setupDB();
 
     const queryKeywords: QueryKeywords = {
@@ -224,7 +225,7 @@ export class BenchmarkRunner {
         } as SomeOfSearchQuery, description: '<Contain at least 2 out of all names>'
       });
     }
-    const results: { result: BenchmarkResult, searchQuery: SearchQueryDTO }[] = [];
+    const results: { result: BenchmarkResult[], searchQuery: SearchQueryDTO }[] = [];
 
     for (const entry of queries) {
       const req = Utils.clone(this.requestTemplate);
@@ -239,7 +240,7 @@ export class BenchmarkRunner {
   }
 
 
-  async bmAutocomplete(text: string): Promise<BenchmarkResult> {
+  async bmAutocomplete(text: string): Promise<BenchmarkResult[]> {
     await this.setupDB();
     const req = Utils.clone(this.requestTemplate);
     req.params.text = text;

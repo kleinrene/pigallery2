@@ -3,6 +3,7 @@ import {ContentWrapper} from '../src/common/entities/ConentWrapper';
 import {Express, NextFunction} from 'express';
 import {Utils} from '../src/common/Utils';
 import {Message} from '../src/common/entities/Message';
+import {ActiveExperiments, Experiments} from './Experiments';
 
 export interface BenchmarkStep {
   name: string;
@@ -79,7 +80,20 @@ export class Benchmark {
     return (this.bmExpressApp as unknown) as Express;
   }
 
-  async run(RUNS: number): Promise<BenchmarkResult> {
+  async run(RUNS: number): Promise<BenchmarkResult[]> {
+    const ret = [await this.runAnExperiment(RUNS)];
+    for (const exp of Object.values(Experiments)) {
+      for (const group of Object.values(exp.groups)) {
+        ActiveExperiments[exp.name] = group;
+        ret.push(await this.runAnExperiment(RUNS));
+        ret[ret.length - 1].experiment = exp.name + '=' + group;
+      }
+      delete ActiveExperiments[exp.name];
+    }
+    return ret;
+  }
+
+  async runAnExperiment(RUNS: number): Promise<BenchmarkResult> {
     console.log('Running benchmark: ' + this.name);
     const scanned = await this.scanSteps();
     const start = process.hrtime();

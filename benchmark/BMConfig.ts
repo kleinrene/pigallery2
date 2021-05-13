@@ -1,8 +1,27 @@
 /* tslint:disable:no-inferrable-types */
 import * as path from 'path';
 import {ConfigClass, ConfigClassBuilder} from 'typeconfig/node';
-import {ConfigProperty} from 'typeconfig/common';
+import {ConfigProperty, SubConfigClass} from 'typeconfig/common';
+import {JobTrigger, JobTriggerType} from '../src/common/entities/job/JobScheduleDTO';
+import {ServerVideoConfig} from '../src/common/config/private/PrivateConfig';
 
+
+
+@SubConfigClass()
+export class BenchmarksConfig  {
+  @ConfigProperty()
+  bmScanDirectory: boolean = true;
+  @ConfigProperty()
+  bmSaveDirectory: boolean = true;
+  @ConfigProperty()
+  bmListDirectory: boolean = true;
+  @ConfigProperty()
+  bmListPersons: boolean = true;
+  @ConfigProperty()
+  bmAllSearch: boolean = true;
+  @ConfigProperty()
+  bmAutocomplete: boolean = true;
+}
 
 @ConfigClass({
   configPath: path.join(__dirname, './../bm_config.json'),
@@ -34,6 +53,8 @@ export class PrivateConfigClass {
   system: string = '';
   @ConfigProperty({description: 'Number of times to run the benchmark'})
   RUNS: number = 50;
+  @ConfigProperty({description: 'Enables / disables benchmarks'})
+  Benchmarks: BenchmarksConfig = new BenchmarksConfig();
 
 
 }
