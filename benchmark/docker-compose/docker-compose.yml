@@ -13,7 +13,6 @@ services:
       - "./pigallery2/tmp:/app/data/tmp" # CHANGE ME
     expose:
       - "80"
-    restart: always
 
 volumes:
   db-benchmark-data:

@@ -6,7 +6,6 @@ import {BMConfig} from './BMConfig';
 
 
 Config.Server.Media.folder = BMConfig.path;
-Config.Server.Database.dbFolder = 'db/bm_db';
 ProjectPath.reset();
 const RUNS = BMConfig.RUNS;
 
